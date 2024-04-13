@@ -5,9 +5,7 @@ Created on Tue Apr  9 23:27:42 2024
 
 @author: sstprk
 """
-import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
 class ANN:
@@ -16,6 +14,8 @@ class ANN:
         self.biases = None
         self.mse_history = []
         self.mad_history = []
+        self.w1_history = []
+        self.w2_history = []
         
         self.x_train = []
         self.y_train = []
@@ -29,8 +29,8 @@ class ANN:
         self.weights = np.random.random((1, shape_y)).T
         self.biases = np.random.random((1, 1))
             
-    def split_data(self, data_x, data_y):
-        x_train, x_test, y_train, y_test = train_test_split(data_x, data_y, train_size=0.7, random_state=1)
+    def split_data(self, data_x, data_y, train_rate=0.7):
+        x_train, x_test, y_train, y_test = train_test_split(data_x, data_y, train_size=train_rate, random_state=1)
         x_test, x_valid, y_test, y_valid = train_test_split(x_test, y_test, train_size=0.5, random_state=1)
         return x_train, y_train, x_valid, y_valid, x_test, y_test
         
@@ -54,7 +54,7 @@ class ANN:
         self.weights -= w_grad * lrate
         self.biases -= b_grad * lrate
             
-    def train(self, train_x, train_y, lr, epochs, print_oneach=500):
+    def train(self, train_x, train_y, lr, epochs):
         self.x_train, self.y_train, self.x_valid, self.y_valid, self.x_test, self.y_test = self.split_data(train_x, train_y)
         
         self.init_params(self.x_train.shape[0], self.x_train.shape[1])
@@ -63,22 +63,32 @@ class ANN:
             predictions = self.forward(self.x_train)
             grad = self.mse_grad(predictions, self.y_train)
             
-            self.backward(self.x_train, lr, grad)
+            self.mse_history.append(self.mse(predictions, self.y_train))
+            self.mad_history.append(self.mad(predictions, self.y_train))
             
-            if i % print_oneach == 0:
-                predictions = self.forward(self.x_valid)
+            self.backward(self.x_train, lr, grad)
+            self.w1_history.append(self.weights[0])
+            self.w2_history.append(self.weights[1])
+            
+            if i % (epochs // 10) == 0:
+                predictions_valid = self.forward(self.x_valid)
+                grad_valid = self.mse_grad(predictions_valid, self.y_valid)
                 
-                mse = self.mse(predictions, self.y_valid)
-                self.mse_history.append(mse)
+                self.backward(self.x_valid, lr, grad_valid)
                 
-                mad = self.mad(predictions, self.y_valid)
-                self.mad_history.append(mad)
+                self.w1_history.append(self.weights[0])
+                self.w2_history.append(self.weights[1])
                 
-                print(f"Epoch {i} MSE: {mse} -- MAD: {mad}")
+                predictions_test = self.forward(self.x_test)
+
+                mse_valid = self.mse(predictions_valid, self.y_valid)
                 
-    def test(self):
-        predictions = self.forward(self.x_test)
-        accuracy_mse = self.mse(predictions, self.y_test)
-        
-        return predictions, self.y_test, accuracy_mse
-        
+                mse_test = self.mse(predictions_test, self.y_test)
+                
+                mad_valid = self.mad(predictions_valid, self.y_valid)
+                
+                mad_test = self.mad(predictions_test, self.y_test)
+
+                print("-------------------------------------------------------")
+                print(f"Epoch {i} MSE Validation: {mse_valid} -- MAD: {mad_valid}")
+                print(f"Epoch {i} MSE Test: {mse_test} -- MAD:{mad_test} ")
