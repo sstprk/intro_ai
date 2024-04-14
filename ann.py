@@ -12,11 +12,15 @@ class ANN:
     def __init__(self):
         self.weights = None
         self.biases = None
-        self.mse_history = []
-        self.mad_history = []
-        self.w1_history = []
-        self.w2_history = []
+        self.mse_history_train = []
+        self.mad_history_train = []
         
+        self.mse_history_valid = []
+        self.mad_history_valid = []
+        
+        self.mse_history_test = []
+        self.mad_history_test = []
+       
         self.x_train = []
         self.y_train = []
         self.x_valid = []
@@ -63,21 +67,16 @@ class ANN:
             predictions = self.forward(self.x_train)
             grad = self.mse_grad(predictions, self.y_train)
             
-            self.mse_history.append(self.mse(predictions, self.y_train))
-            self.mad_history.append(self.mad(predictions, self.y_train))
+            self.mse_history_train.append(self.mse(predictions, self.y_train))
+            self.mad_history_train.append(self.mad(predictions, self.y_train))
             
             self.backward(self.x_train, lr, grad)
-            self.w1_history.append(self.weights[0])
-            self.w2_history.append(self.weights[1])
             
             if i % (epochs // 10) == 0:
                 predictions_valid = self.forward(self.x_valid)
                 grad_valid = self.mse_grad(predictions_valid, self.y_valid)
                 
                 self.backward(self.x_valid, lr, grad_valid)
-                
-                self.w1_history.append(self.weights[0])
-                self.w2_history.append(self.weights[1])
                 
                 predictions_test = self.forward(self.x_test)
 
@@ -88,6 +87,13 @@ class ANN:
                 mad_valid = self.mad(predictions_valid, self.y_valid)
                 
                 mad_test = self.mad(predictions_test, self.y_test)
+                
+                self.mse_history_valid.append(mse_valid)
+                self.mad_history_valid.append(mad_valid)
+                
+                self.mse_history_test.append(mse_test)
+                self.mad_history_test.append(mad_test)
+
 
                 print("-------------------------------------------------------")
                 print(f"Epoch {i} MSE Validation: {mse_valid} -- MAD: {mad_valid}")
