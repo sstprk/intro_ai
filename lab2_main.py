@@ -140,7 +140,7 @@ plt.show()
 
 
 #n=10 Model
-lr10 = 1e-5
+lr10 =2e-5
 epochs10 = 10000
 
 print("\nMODEL WITH n=10")

@@ -20,6 +20,9 @@ class ANN:
         
         self.mse_history_test = []
         self.mad_history_test = []
+        
+        self.initial_w = None
+        self.initial_b = None
        
         self.x_train = []
         self.y_train = []
@@ -32,6 +35,8 @@ class ANN:
         np.random.seed(0)
         self.weights = np.random.random((1, shape_y)).T
         self.biases = np.random.random((1, 1))
+        self.initial_w, self.initial_b = self.weights.copy(), self.biases.copy()
+        
             
     def split_data(self, data_x, data_y, train_rate=0.7):
         x_train, x_test, y_train, y_test = train_test_split(data_x, data_y, train_size=train_rate, random_state=1)
